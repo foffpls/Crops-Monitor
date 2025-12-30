@@ -64,18 +64,18 @@ python -m app.main
 Graintrade_Monitor/
 ├── app/
 │   ├── bot/
-│   │   ├── analytics.py      # Аналіз даних та статистика
+│   │   ├── analytics.py       # Аналіз даних та статистика
 │   │   ├── crops_list.py      # Список доступних культур
-│   │   ├── handlers.py         # Обробники команд та callback
+│   │   ├── handlers.py        # Обробники команд та callback
 │   │   ├── keyboards.py       # Клавіатури для бота
 │   │   └── parser.py          # Парсинг даних з сайту
 │   ├── utils/
+│   │   ├── __init__.py     
 │   │   └── formatters.py      # Функції форматування тексту
 │   ├── config_loader.py       # Завантаження конфігурації
 │   └── main.py                # Точка входу
 ├── data/                      # Дані (якщо потрібно)
 ├── .env                       # Змінні оточення (не комітиться)
-├── .env.example               # Приклад змінних оточення
 ├── .gitignore
 ├── requirements.txt           # Залежності Python
 └── README.md                  # Документація
