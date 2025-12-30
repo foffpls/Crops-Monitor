@@ -5,7 +5,7 @@
 зернових культур з веб-сайту.
 """
 import aiohttp
-from lxml import html
+from bs4 import BeautifulSoup
 import re
 from app.config_loader import USD_RATE, MAX_PAGES
 
@@ -36,20 +36,32 @@ async def fetch_table(url: str) -> list[dict]:
             try:
                 async with session.get(page_url) as resp:
                     text = await resp.text()
-                    tree = html.fromstring(text)
-                    rows = tree.xpath('/html/body/div[1]/div[2]/div/div/div[2]/div[1]/div[1]/div/div/table/tbody/tr')
+                    soup = BeautifulSoup(text, 'html.parser')
+                    
+                    # Знаходимо таблицю з оголошеннями (шукаємо tbody з рядками)
+                    tbody = soup.find('tbody')
+                    if not tbody:
+                        continue
+                    
+                    rows = tbody.find_all('tr')
                     
                     for r in rows:
                         try:
-                            # Отримуємо всі текстові вузли та об'єднуємо їх
-                            date_elem = r.xpath('./td[1]')
-                            date = ' '.join(date_elem[0].itertext()).strip() if date_elem else ''
+                            cells = r.find_all('td')
+                            if len(cells) < 6:
+                                continue
                             
-                            type_elem = r.xpath('./td[3]/span')
-                            type_offer = ' '.join(type_elem[0].itertext()).strip().lower() if type_elem else ''
+                            # Отримуємо дату (перша колонка)
+                            date_elem = cells[0]
+                            date = date_elem.get_text(strip=True) if date_elem else ''
                             
-                            price_elem = r.xpath('./td[6]')
-                            price_text = ' '.join(price_elem[0].itertext()).strip() if price_elem else ''
+                            # Отримуємо тип оголошення (третя колонка, span)
+                            type_elem = cells[2].find('span') if len(cells) > 2 else None
+                            type_offer = type_elem.get_text(strip=True).lower() if type_elem else ''
+                            
+                            # Отримуємо ціну (шоста колонка)
+                            price_elem = cells[5] if len(cells) > 5 else None
+                            price_text = price_elem.get_text(strip=True) if price_elem else ''
                             
                             # Парсимо ціну: прибираємо все, крім цифр, крапки або коми
                             price_clean = re.sub(r"[^\d.,]", "", price_text).replace(",", ".")
